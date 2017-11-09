@@ -1,0 +1,7 @@
+*.pdf
+*Debug
+*Release
+*.vs
+*.pdsbak
+*.bmp
+*.rte
