@@ -9,9 +9,10 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-#ifdef DEBUG
-#define F_CPU 2000
-#endif
+
+//#define F_CPU 1000000
+//#define F_CPU ((uint32_t)1000000)
+
 
 //#define UNO 1
 //#define NANO 1

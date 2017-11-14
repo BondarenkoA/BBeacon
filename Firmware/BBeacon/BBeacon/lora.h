@@ -10,6 +10,8 @@
 #define LORA_H_
 
 
+#define FREQ_STEP 20
+
 //Error Coding rate (CR)setting
 #define CR_4_5
 //#define CR_4_6 0
@@ -94,6 +96,7 @@
 #define REG_LR_AGCTHRESH3 0x64
 
 
+void set_freq_kHz(uint32_t freq_kHz);
  
 unsigned char LoRa_entry_tx(void);
 
@@ -101,7 +104,9 @@ unsigned char LoRa_tx_packet(void);
 
 unsigned char GFSK_entry_tx(void);
 
-unsigned char GFSK_tx_packet(uint8_t power);
+unsigned char GFSK_tx_packet();
 
+void GFSK_set_power(uint8_t power);
+void GFSK_set_dev(uint8_t fdev_msb, uint8_t fdev_lsb);
 
 #endif /* LORA_H_ */

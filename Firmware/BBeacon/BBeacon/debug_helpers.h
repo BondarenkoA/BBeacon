@@ -28,6 +28,8 @@ void debug_u(uint16_t value16 );
 
 void debug_u_ln(uint16_t value16 );
 
+void debug_ul_ln(uint32_t value32 );
+
 
 //LOGER ============================================================================
 #define I2C_LOGGER 1
@@ -40,7 +42,7 @@ static uint8_t log_level = 0;
 #define RETURN { if(I2C_LOGGER == 1) {	for (int i=1; i <= log_level ;i++)	debug_str("  ");	debug_strln("<< Return");	log_level--;};return ;}
 
 #define LOG_HEX(T, v) if(I2C_LOGGER == 1) { for (int i=1; i <= log_level+1 ;i++) debug_str("  "); debug_str(T); debug_b_hex_ln(v); };
-#define LOG_DEC(T, v) if(I2C_LOGGER == 1) { for (int i=1; i <= log_level+1 ;i++) debug_str("  "); debug_str(T); debug_b_ln(v); };
+#define LOG_DEC(T, v) if(I2C_LOGGER == 1) { for (int i=1; i <= log_level+1 ;i++) debug_str("  "); debug_str(T); debug_ul_ln(v); };
 #define LOG_STR(T) if(I2C_LOGGER == 1) { for (int i=1; i <= log_level+1 ;i++) debug_str("  "); debug_strln(T);}
 
 

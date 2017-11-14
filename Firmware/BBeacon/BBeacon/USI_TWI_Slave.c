@@ -85,6 +85,7 @@ void USI_TWI_Transmit_Byte( unsigned char data )
     while ( tmphead == TWI_TxTail );                           // Wait for free space in buffer.
     TWI_TxBuf[tmphead] = data;                                 // Store data in buffer.
     TWI_TxHead = tmphead;                                      // Store new index.
+	USICR |= ((1<<USISIE)|(1<<USIOIE));
 }
 
 void USI_TWI_Transmit_Byte_no_check( unsigned char data){
@@ -94,6 +95,7 @@ void USI_TWI_Transmit_Byte_no_check( unsigned char data){
 	if ( tmphead != TWI_TxTail ){                           // Wait for free space in buffer.
 		TWI_TxBuf[tmphead] = data;                                 // Store data in buffer.
 		TWI_TxHead = tmphead;                                      // Store new index.
+		USICR |= ((1<<USISIE)|(1<<USIOIE));
 	}
 }
 /*! \brief Returns a byte from the receive buffer. Waits if buffer is empty.
@@ -125,7 +127,13 @@ unsigned char USI_TWI_Data_In_Receive_Buffer( void )
 
 ISR(USI_START_VECTOR)
 {
-    unsigned char tmpUSISR;                                         // Temporary variable to store volatile
+    unsigned char tmpUSISR;// Temporary variable to store volatile
+	
+	if ( TWI_TxHead == TWI_TxTail ){
+		 USICR &= ~((1<<USISIE)|(1<<USIOIE));
+		 return;
+	}
+	                                        
     tmpUSISR = USISR;                                               // Not necessary, but prevents warnings
 // Set default starting conditions for new TWI package
     USI_TWI_Overflow_State = USI_SLAVE_CHECK_ADDRESS;

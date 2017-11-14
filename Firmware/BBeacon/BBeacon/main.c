@@ -18,6 +18,7 @@
 #include "USI_TWI_Slave.h"
 #include "mySPI.h"
 #include "debug_helpers.h"
+#include "millis.h"
 #include "lora.h"
 
 
@@ -79,9 +80,10 @@ int main(void)
 	uint8_t c;
 	
 	io_init();
+	millis_init();
 	//clock_prescale_set(clock_div_32);
 	sei(); // разрешаем прерывания
-	
+	 
 	RXEN_OFF;
 	TXEN_ON;
 	
@@ -93,23 +95,47 @@ int main(void)
 	USI_TWI_Slave_Initialise( TWI_slaveAddress );
 	
 	debug_str("BBeacon\n");
-	//LoRa_entry_tx();	
+	LoRa_entry_tx();	
 	
-	GFSK_entry_tx();
+	//GFSK_entry_tx();
 	
+	set_freq_kHz(433200);
+	
+	LOG_DEC("FC ", F_CPU);
+	
+	millis_reset();
+	LED_ON;
+	_delay_ms(5000);
+	LED_OFF;
+	LOG_DEC(" - ", millis());
+	
+	//GFSK_set_power(0xF0);
 	
 	while(1){	
 		
 		LED_ON;
 		
-		GFSK_tx_packet(0x80);_delay_ms(20);
-		GFSK_tx_packet(0x82);_delay_ms(20);
-		GFSK_tx_packet(0x88);_delay_ms(20);
-		GFSK_tx_packet(0x8F);_delay_ms(20);
+		millis_reset();
+		
+		LoRa_tx_packet();
+		//GFSK_set_dev(0x00, 0x64);GFSK_tx_packet();_delay_ms(100);
+		//GFSK_set_dev(0x02, 0xff);GFSK_tx_packet();_delay_ms(100);
+		//GFSK_set_dev(0x04, 0xff);GFSK_tx_packet();_delay_ms(100);
+		//GFSK_set_dev(0x06, 0xff);GFSK_tx_packet();_delay_ms(100);
+		
+		LOG_DEC("ToA - ", millis());
 		
 		LED_OFF;
 		
+		_delay_ms(200);
+		
+		//LOG_DEC(" - ", millis());
+		
+		millis_reset();
+		
 		_delay_ms(800);
+		
+		LOG_DEC(" - ", millis());
 	}
 	
 	while(1){

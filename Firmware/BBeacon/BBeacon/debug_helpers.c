@@ -76,3 +76,14 @@ void debug_u_ln(uint16_t value16 ){
 	
 	USI_TWI_Transmit_Byte_no_check('\n');
 }
+
+void debug_ul_ln(uint32_t value32 ){
+	char buffer[6];
+	int i = 0;
+	
+	ultoa(value32, buffer, 10);
+	
+	while(buffer[i]) USI_TWI_Transmit_Byte_no_check(buffer[i++]);
+	
+	USI_TWI_Transmit_Byte_no_check('\n');
+}
