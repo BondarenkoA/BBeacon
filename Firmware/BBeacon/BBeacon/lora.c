@@ -42,11 +42,14 @@ static unsigned char sx1276_7_8LoRaBwTbl[10] =
 
 
 static unsigned char sx1276_7_8Data[] = {"Lora sx1276 1234567890"};
-static unsigned char data_size = 20;
+static unsigned char data_size = 2;
 
 void set_freq_kHz(uint32_t freq_kHz){
 	uint32_t frf = 0;
 	uint8_t reg_freq[3];
+	
+	PROC("set_freq_kHz");
+	
 	frf = (uint32_t) ( (float)freq_kHz*1000 / FSTEP );
 	
 	for (int i = 2; i >=0; i--){
@@ -58,6 +61,7 @@ void set_freq_kHz(uint32_t freq_kHz){
 	
 	SPI_burst_write(LR_RegFrMsb, reg_freq, 3);
 	
+	RETURN;
 }
 
 unsigned char LoRa_entry_tx(void)
@@ -152,22 +156,29 @@ unsigned char GFSK_entry_tx(void){
 	
 	SPI_write(LR_RegOpMode, 0x08);
 	_delay_ms(5);
-	SPI_write(LR_RegFrMsb, 0x85); //setting frequency parameter
-	SPI_write(LR_RegFrMid, 0x40); //setting frequency parameter
-	SPI_write(LR_RegFrLsb, 0xFC); //setting frequency parameter
+	//SPI_write(LR_RegFrMsb, 0x85); //setting frequency parameter
+	//SPI_write(LR_RegFrMid, 0x40); //setting frequency parameter
+	//SPI_write(LR_RegFrLsb, 0xFC); //setting frequency parameter
 	
-	SPI_write(0x04, 0x00);//RegFdevMsb
-	SPI_write(0x05, 0x74);//RegFdevLsb
+	//SPI_write(RegFdevMsb, 0x00);//RegFdevMsb
+	//SPI_write(RegFdevLsb, 0x74);//RegFdevLsb
 	
 	SPI_write(LR_RegPaConfig, 0x80); //Setting output power parameter
 	SPI_write(LR_RegOcp, 0x0B); //RegOcp, Close Ocp
-	SPI_write(0x30, 0x00);//RegPacketConfig1
-	SPI_write(0x32, 1);//RegPayloadLength
 	
-	SPI_write(0x25, 0x00);//RegPreambleMsb
-	SPI_write(0x26, 0x2F);//RegPreambleLsb
+	SPI_write(RegPaRamp, 0x49);//RegPaRamp GAUSSIAN 0,5
 	
-	SPI_write(0x0A, 0x49);//RegPaRamp GAUSSIAN 0,5
+	SPI_write(RegPreambleMsb, 0x00);//RegPreambleMsb
+	SPI_write(RegPreambleLsb, 0x32);//RegPreambleLsb
+	
+	SPI_write(RegPacketConfig1, 0x00);//RegPacketConfig1
+	SPI_write(RegPacketConfig2, 0x40);//RegPacketConfig2
+	
+	SPI_write(RegFifoThresh, 0x80);
+	
+	SPI_write(RegPayloadLength, data_size);//RegPayloadLength
+	
+	
 	
 	RETURN_V(0);
 }
@@ -184,21 +195,23 @@ unsigned char GFSK_tx_packet(){
 	
 	//addr = SPI_read(LR_RegFifoTxBaseAddr); //RegFiFoTxBaseAddr
 	//SPI_write(LR_RegFifoAddrPtr, addr); //RegFifoAddrPtr
-	//LOG_HEX("irq2 ", SPI_read(0x3f));//RegIrqFlags2
+	LOG_HEX("1 ", SPI_read(RegIrqFlags2));//RegIrqFlags2
 	
-	SPI_burst_write(0x00, (unsigned char *)sx1276_7_8Data, data_size);
-	SPI_burst_write(0x00, (unsigned char *)sx1276_7_8Data, data_size);
+	SPI_burst_write(RegFIFO, (unsigned char *)sx1276_7_8Data, data_size);
+	//SPI_burst_write(RegFIFO, (unsigned char *)sx1276_7_8Data, data_size);
 	
-	LOG_HEX("irq2 ", SPI_read(0x3f));//RegIrqFlags2
+	LOG_HEX("2 ", SPI_read(RegIrqFlags2));//RegIrqFlags2
+	LOG_HEX("Op1 ", SPI_read(RegOpMode));//RegOpMode
 	
-	SPI_write(LR_RegOpMode,0x0b); //Tx Mode 8b
+	SPI_write(RegOpMode,0x0b); //Tx Mode 8b
 	
-	LOG_HEX("irq2 ", SPI_read(0x3f));//RegIrqFlags2
+	LOG_HEX("3 ", SPI_read(RegIrqFlags2));//RegIrqFlags2
+	LOG_HEX("Op2 ", SPI_read(RegOpMode));//RegOpMode
 
-	while((SPI_read(0x3f) & (1 << 3)) != (1 << 3)) //RegIrqFlags2
+	while((SPI_read(RegIrqFlags2) & (1 << 3)) != (1 << 3)) //RegIrqFlags2
 	{
-		//LOG_HEX("irq2 ", SPI_read(0x3f));//RegIrqFlags2
-		_delay_ms(1);
+		LOG_HEX("4 ", SPI_read(RegIrqFlags2));//RegIrqFlags2
+		_delay_ms(10);
 	}
 	
 	SPI_write(LR_RegOpMode,0x09); //Entry Standby mode
@@ -219,6 +232,6 @@ void GFSK_set_dev(uint8_t fdev_msb, uint8_t fdev_lsb){
 	SPI_write(LR_RegOpMode, 0x08);
 	_delay_ms(1);
 	
-	SPI_write(0x04, fdev_msb);//RegFdevMsb
-	SPI_write(0x05, fdev_lsb);//RegFdevLsb
+	SPI_write(RegFdevMsb, fdev_msb);//RegFdevMsb
+	SPI_write(RegFdevLsb, fdev_lsb);//RegFdevLsb
 }

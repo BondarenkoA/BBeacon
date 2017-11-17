@@ -20,6 +20,7 @@
 #include "debug_helpers.h"
 #include "millis.h"
 #include "lora.h"
+#include "battery.h"
 
 
 void io_init(){
@@ -33,7 +34,7 @@ void io_init(){
 			|	(1 << TXEN_BIT)			//TX EN Lora			pin	10
 			|	(0 << USCK_BIT )		//i2c SCK slave			pin	9
 			|	(0 << ARMING_BIT)		//Arming motor input	pin	8
-			|	(1 << SDA_BIT)			//i2c SDA slave			pin	7
+			|	(0 << SDA_BIT)			//i2c SDA slave			pin	7
 			|	(1 << SPI_SCK_BIT);		//SPI Mast SCK to LoRa	pin 6
 	DDRB =		(1 << SPI_NSEL_BIT)		//SPI Mast SS to LoRa	pin 2
 			|	(1 << SPI_MOSI_BIT)		//SPI Mast MOSI to LoRa	pin 3
@@ -55,6 +56,7 @@ void powerof_delay(int i_wdt_time){
 	sleep_mode(); // спать!
 }
 
+/*
 void test_powerof(){
 	
 	LED_ON;
@@ -74,10 +76,53 @@ void test_powerof(){
 }
 
 
+void out_str_p(const char *c_p ){
+
+	while(pgm_read_byte(c_p) != '\0'){
+		USI_TWI_Transmit_Byte(pgm_read_byte(c_p));
+		c_p++;
+	}
+}
+
+void test_strings(){
+
+	LED_ON;
+	USI_TWI_Transmit_Byte_no_check('T');//_delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('e');//_delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('s');//_delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('t');//delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('\n');//
+	_delay_ms(10);
+	LED_OFF;
+	_delay_ms(200);
+	
+	while(1){
+		out_str_p(PSTR(">>")); 
+		out_str_p(PSTR("1234567890")); 
+		out_str_p(PSTR("\n"));
+		_delay_ms(100);
+	}
+
+}*/
+
+void test_adc(){
+	
+	debug_str_p(PSTR("test_adc\n"));
+	
+	while(1){
+		_delay_ms(400);
+		adc_start();
+		LED_ON
+		_delay_ms(200);
+		LED_OFF
+		
+		LOG_DEC("ADCW - ", ADCW * 12 );
+	}
+}
+
 int main(void)
 {
-	unsigned char TWI_slaveAddress;
-	uint8_t c;
+	unsigned char TWI_slaveAddress = 0x10;
 	
 	io_init();
 	millis_init();
@@ -89,27 +134,30 @@ int main(void)
 	
 //test_powerof();
 	
-	TWI_slaveAddress = 0x10;
-	c = 0;
-	
 	USI_TWI_Slave_Initialise( TWI_slaveAddress );
 	
-	debug_str("BBeacon\n");
-	LoRa_entry_tx();	
+	debug_str_p(PSTR("BBeacon\n"));
 	
-	//GFSK_entry_tx();
+	LOG_DEC("F_CPU = ", F_CPU);
+	
+	LED_ON;_delay_ms(400);LED_OFF
+	
+	LOG_DEC("400ms - ", millis());
+	
+	test_adc();
+	//LoRa_entry_tx();	
+	/*
+	GFSK_entry_tx();
 	
 	set_freq_kHz(433200);
 	
-	LOG_DEC("FC ", F_CPU);
-	
 	millis_reset();
-	LED_ON;
-	_delay_ms(5000);
-	LED_OFF;
-	LOG_DEC(" - ", millis());
 	
-	//GFSK_set_power(0xF0);
+	LED_ON;_delay_ms(400);LED_OFF
+	
+	LOG_DEC("400ms - ", millis());
+	
+	GFSK_set_power(0xF0);
 	
 	while(1){	
 		
@@ -117,11 +165,11 @@ int main(void)
 		
 		millis_reset();
 		
-		LoRa_tx_packet();
-		//GFSK_set_dev(0x00, 0x64);GFSK_tx_packet();_delay_ms(100);
-		//GFSK_set_dev(0x02, 0xff);GFSK_tx_packet();_delay_ms(100);
-		//GFSK_set_dev(0x04, 0xff);GFSK_tx_packet();_delay_ms(100);
-		//GFSK_set_dev(0x06, 0xff);GFSK_tx_packet();_delay_ms(100);
+		//LoRa_tx_packet();
+		GFSK_set_dev(0x01, 0x4F);GFSK_tx_packet();_delay_ms(300);
+		GFSK_set_dev(0x01, 0x7f);GFSK_tx_packet();_delay_ms(300);
+		GFSK_set_dev(0x02, 0xff);GFSK_tx_packet();_delay_ms(300);
+		GFSK_set_dev(0x03, 0xff);GFSK_tx_packet();_delay_ms(300);
 		
 		LOG_DEC("ToA - ", millis());
 		
@@ -129,34 +177,15 @@ int main(void)
 		
 		_delay_ms(200);
 		
-		//LOG_DEC(" - ", millis());
+		//LOG_DEC("- ", millis());
 		
 		millis_reset();
 		
 		_delay_ms(800);
 		
-		LOG_DEC(" - ", millis());
+		LOG_DEC("800ms - ", millis());
 	}
-	
-	while(1){
-		
-		//debug_str("\n--->\n");
-		/*c = SPI_read(0x42);
-		debug_str("REG_LR_VERSION  - "); debug_b_ln(c);
-		debug_str("RegOpMode - "); debug_b_ln(SPI_read(0x01));
-		debug_str("RegFrfMsb - "); debug_b_ln(SPI_read(0x06));
-		debug_str("RegRssiThresh - "); debug_b_ln(SPI_read(0x10));
-		debug_str("RegRxTimeout1 - "); debug_b_ln(SPI_read(0x20));*/
-		
-		debug_b(c);debug_str(" - ");debug_b_ln(SPI_read(c));
-		
-		if(c++ > 0x70){
-			 c = 0;
-			 debug_str("\n -------- \n");
-		}
-		//USI_TWI_Transmit_Byte(c++);
-		_delay_ms(300);
-	}
-	//test_powerof();
+	*/
+
 }
 

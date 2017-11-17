@@ -85,7 +85,7 @@ void USI_TWI_Transmit_Byte( unsigned char data )
     while ( tmphead == TWI_TxTail );                           // Wait for free space in buffer.
     TWI_TxBuf[tmphead] = data;                                 // Store data in buffer.
     TWI_TxHead = tmphead;                                      // Store new index.
-	USICR |= ((1<<USISIE)|(1<<USIOIE));
+	USICR |= (1<<USISIE);
 }
 
 void USI_TWI_Transmit_Byte_no_check( unsigned char data){
@@ -95,7 +95,7 @@ void USI_TWI_Transmit_Byte_no_check( unsigned char data){
 	if ( tmphead != TWI_TxTail ){                           // Wait for free space in buffer.
 		TWI_TxBuf[tmphead] = data;                                 // Store data in buffer.
 		TWI_TxHead = tmphead;                                      // Store new index.
-		USICR |= ((1<<USISIE)|(1<<USIOIE));
+		USICR |= (1<<USISIE);
 	}
 }
 /*! \brief Returns a byte from the receive buffer. Waits if buffer is empty.
@@ -164,7 +164,7 @@ ISR(USI_OVERFLOW_VECTOR)
     // ---------- Address mode ----------
     // Check address and send ACK (and next USI_SLAVE_SEND_DATA) if OK, else reset USI.
     case USI_SLAVE_CHECK_ADDRESS:
-      if ((USIDR == 0) || (( USIDR>>1 ) == TWI_slaveAddress))
+      if ( ( USIDR>>1 ) == TWI_slaveAddress )
       {
         if ( USIDR & 0x01 ){
 			if ( TWI_TxHead == TWI_TxTail ){

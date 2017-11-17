@@ -10,7 +10,7 @@
 #define CONFIG_H_
 
 
-//#define F_CPU 1000000
+//#define F_CPU 1000000UL
 //#define F_CPU ((uint32_t)1000000)
 
 
