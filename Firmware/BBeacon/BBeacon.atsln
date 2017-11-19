@@ -5,6 +5,12 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "BBeacon", "BBeacon\BBeacon.cproj", "{DCE6C7E3-EE26-4D79-826B-08594B9AD897}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6CEA0DE4-9B3C-4A3D-9245-7DA63C5F1203}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\Attiny44a_DataSheet.pdf = ..\..\Attiny44a_DataSheet.pdf
+		..\..\..\..\..\..\data\Google Диск\Проекты\GPS_tracker\Docs\LoRa\DataSheet_sx1276.pdf = ..\..\..\..\..\..\data\Google Диск\Проекты\GPS_tracker\Docs\LoRa\DataSheet_sx1276.pdf
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|AVR = Debug|AVR

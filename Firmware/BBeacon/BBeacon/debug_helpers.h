@@ -23,25 +23,19 @@ extern const char str_eol[];
 
 
  
-void debug_str(char* c );
+//void debug_str(char* c );
 
 void debug_str_p(const char *c );
 
-void debug_strln(char* c );
+//void debug_b(uint8_t value8 );
 
-void debug_b(uint8_t value8 );
-
-void debug_b_ln(uint8_t value8 );
-
-void debug_b_hex(uint8_t value8 );
+//void debug_b_ln(uint8_t value8 );
 
 void debug_u_hex_ln(uint16_t value16 );
 
-void debug_u(uint16_t value16 );
+void debug_u_dec_ln(uint16_t value16 );
 
-void debug_u_ln(uint16_t value16 );
-
-void debug_ul_ln(uint32_t value32 );
+//void debug_u(uint16_t value16 );
 
 
 //LOGER ============================================================================
@@ -73,7 +67,7 @@ void debug_ul_ln(uint32_t value32 );
 	if(I2C_LOGGER == 1) {	\
 		for (int i=1; i <= log_level ;i++) debug_str_p(str_space);	\
 		debug_str_p(str_ret);	\
-		debug_b_ln(ret);	\
+		debug_u_dec_ln(ret);	\
 		log_level--;}; \
 	return(ret);}
 
@@ -83,7 +77,7 @@ void debug_ul_ln(uint32_t value32 );
 	log_level--;};return ;}
 
 #define LOG_HEX(T, v) if(I2C_LOGGER == 1) { for (int i=1; i <= log_level ;i++) debug_str_p(str_space); debug_str_p(PSTR(T)); debug_u_hex_ln(v); };
-#define LOG_DEC(T, v) if(I2C_LOGGER == 1) { for (int i=1; i <= log_level ;i++) debug_str_p(str_space); debug_str_p(PSTR(T)); debug_ul_ln(v); };
+#define LOG_DEC(T, v) if(I2C_LOGGER == 1) { for (int i=1; i <= log_level ;i++) debug_str_p(str_space); debug_str_p(PSTR(T)); debug_u_dec_ln(v); };
 #define LOG_STR(T) if(I2C_LOGGER == 1)    { for (int i=1; i <= log_level ;i++) debug_str_p(str_space); debug_str_p(PSTR(T)); debug_str_p(str_eol);}
 
 #else //I2C_LOGGER

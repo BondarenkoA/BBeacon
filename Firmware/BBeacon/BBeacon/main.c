@@ -44,85 +44,39 @@ void io_init(){
 ISR (WATCHDOG_vect) {
 	cli();
 	wdt_disable();
+	sei();
 }
 
-void powerof_delay(int i_wdt_time){
-	wdt_reset(); // сбрасываем
-	wdt_enable(i_wdt_time); // разрешаем ватчдог
-	_WD_CONTROL_REG |= _BV(WDIE);
-	
-	set_sleep_mode(SLEEP_MODE_PWR_DOWN); // если спать - то на полную
-	sleep_enable(); // разрешаем сон
-	sleep_mode(); // спать!
+//Прототипы функций =================================================================
+void powerof_delay(int i_wdt_time);
+
+void test_powerof();
+
+void test_adc();
+
+void battery_save_mode();// отключаемся при очень низком напряжении
+
+void WDT_off(void)
+{
+	wdt_reset();
+	/* Clear WDRF in MCUSR */
+	MCUSR = 0x00;
+	/* Write logical one to WDCE and WDE */
+	WDTCSR |= (1<<WDCE) | (1<<WDE);
+	/* Turn off WDT */
+	WDTCSR = 0x00;
 }
 
-/*
-void test_powerof(){
-	
-	LED_ON;
-	_delay_ms(50);
-	LED_OFF;
-	_delay_ms(100);
-	LED_ON;
-	_delay_ms(50);
-	LED_OFF;
-	
-	while(1) {
-		powerof_delay(WDTO_4S);
-		LED_ON;
-		powerof_delay(WDTO_15MS);
-		LED_OFF;
-	}
-}
-
-
-void out_str_p(const char *c_p ){
-
-	while(pgm_read_byte(c_p) != '\0'){
-		USI_TWI_Transmit_Byte(pgm_read_byte(c_p));
-		c_p++;
-	}
-}
-
-void test_strings(){
-
-	LED_ON;
-	USI_TWI_Transmit_Byte_no_check('T');//_delay_ms(10);
-	USI_TWI_Transmit_Byte_no_check('e');//_delay_ms(10);
-	USI_TWI_Transmit_Byte_no_check('s');//_delay_ms(10);
-	USI_TWI_Transmit_Byte_no_check('t');//delay_ms(10);
-	USI_TWI_Transmit_Byte_no_check('\n');//
-	_delay_ms(10);
-	LED_OFF;
-	_delay_ms(200);
-	
-	while(1){
-		out_str_p(PSTR(">>")); 
-		out_str_p(PSTR("1234567890")); 
-		out_str_p(PSTR("\n"));
-		_delay_ms(100);
-	}
-
-}*/
-
-void test_adc(){
-	
-	debug_str_p(PSTR("test_adc\n"));
-	
-	while(1){
-		_delay_ms(400);
-		adc_start();
-		LED_ON
-		_delay_ms(200);
-		LED_OFF
-		
-		LOG_DEC("ADCW - ", ADCW * 12 );
-	}
-}
 
 int main(void)
 {
 	unsigned char TWI_slaveAddress = 0x10;
+	
+	WDT_off();
+	
+	//clock_prescale_set(clock_div_1);
+	
+	//clock_prescale_set(clock_div_1);
 	
 	io_init();
 	millis_init();
@@ -140,13 +94,25 @@ int main(void)
 	
 	LOG_DEC("F_CPU = ", F_CPU);
 	
+	LED_ON;
+	
+	while(0){
+		 wdt_reset();
+		 _delay_ms(120);
+		 //LED_ON;_delay_ms(100);LED_OFF;_delay_ms(500);
+	}
+	
 	LED_ON;_delay_ms(400);LED_OFF
 	
 	LOG_DEC("400ms - ", millis());
 	
-	test_adc();
+	_delay_ms(1000);
+	
+	battery_save_mode();
+	
+	//test_adc();
 	//LoRa_entry_tx();	
-	/*
+/*	
 	GFSK_entry_tx();
 	
 	set_freq_kHz(433200);
@@ -185,7 +151,113 @@ int main(void)
 		
 		LOG_DEC("800ms - ", millis());
 	}
-	*/
+	*/	
 
 }
 
+
+void battery_save_mode(){
+	SX1276_SLEEP;
+	
+	RXEN_OFF;
+	TXEN_OFF;
+	
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN); // если спать - то на полную
+	//sleep_enable(); // разрешаем сон
+	
+	clock_prescale_set(clock_div_256);
+	
+	while(1){
+		
+		LED_ON;
+		
+		clock_prescale_set(clock_div_256);
+		wdt_enable(WDTO_2S); // разрешаем ватчдог
+		_WD_CONTROL_REG |= (1 << WDIE);//разрешаем прерывание
+		clock_prescale_set(clock_div_1);
+		
+		LED_OFF;
+		
+		sleep_mode();
+		
+		for(uint8_t i = 0; i < 10; i++){
+			wdt_enable(WDTO_2S); // разрешаем ватчдог
+			_WD_CONTROL_REG |= (1 << WDIE);//разрешаем прерывание
+			
+			sleep_mode();
+		}
+	}
+}
+
+void powerof_delay(int i_wdt_time){
+	wdt_enable(i_wdt_time); // разрешаем ватчдог
+	_WD_CONTROL_REG |= (1 << WDIE);//разрешаем прерывание
+	
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN); // если спать - то на полную
+	sleep_enable(); // разрешаем сон
+	sleep_mode(); // спать!
+}
+
+void test_powerof(){
+	
+	LED_ON;
+	_delay_ms(50);
+	LED_OFF;
+	_delay_ms(100);
+	LED_ON;
+	_delay_ms(50);
+	LED_OFF;
+	
+	while(1) {
+		powerof_delay(WDTO_4S);
+		LED_ON;
+		powerof_delay(WDTO_15MS);
+		LED_OFF;
+	}
+}
+
+
+void test_adc(){
+	
+	debug_str_p(PSTR("test_adc\n"));
+	
+	while(1){
+		_delay_ms(400);
+		adc_start();
+		LED_ON
+		_delay_ms(200);
+		LED_OFF
+		
+		LOG_DEC("ADCW - ", ADCW * 12 );
+	}
+}
+
+/*
+void out_str_p(const char *c_p ){
+
+	while(pgm_read_byte(c_p) != '\0'){
+		USI_TWI_Transmit_Byte(pgm_read_byte(c_p));
+		c_p++;
+	}
+}
+
+void test_strings(){
+
+	LED_ON;
+	USI_TWI_Transmit_Byte_no_check('T');//_delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('e');//_delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('s');//_delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('t');//delay_ms(10);
+	USI_TWI_Transmit_Byte_no_check('\n');//
+	_delay_ms(10);
+	LED_OFF;
+	_delay_ms(200);
+	
+	while(1){
+		out_str_p(PSTR(">>")); 
+		out_str_p(PSTR("1234567890")); 
+		out_str_p(PSTR("\n"));
+		_delay_ms(100);
+	}
+
+}*/

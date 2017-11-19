@@ -164,6 +164,7 @@
 #define RegPaDac 0x4d
 #define RegBitRateFrac 0x5d
 
+#define SX1276_SLEEP SPI_write(LR_RegOpMode, 0x08);
 
 void set_freq_kHz(uint32_t freq_kHz);
  
